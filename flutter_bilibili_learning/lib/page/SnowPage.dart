@@ -10,16 +10,49 @@ class SnowPage extends StatefulWidget {
 }
 
 class _SnowPageState extends State<SnowPage> with TickerProviderStateMixin {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("雪花飘落效果"),
+      ),
+      //填充布局
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        //层叠布局
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Image.network(
+              "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1606559665664&di=e907b7170d5474182f4c10693b1b4a6f&imgtype=0&src=http%3A%2F%2Fpic.vjshi.com%2F2020-01-12%2Fd2584e9710469221b122831e45c801e1%2F00003.jpg%3Fx-oss-process%3Dstyle%2Fwatermark",
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+            ),
+            CustomSnowWidget()
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CustomSnowWidget extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return _CustomSnowWidgetState();
+  }
+}
+
+class _CustomSnowWidgetState extends State<CustomSnowWidget>
+    with TickerProviderStateMixin {
   List<CustomPoint> _list = [];
-
   Random _random = Random();
-
   AnimationController _animationController;
 
   @override
   void initState() {
-    super.initState();
-
     //初始化动画控制器 重复执行
     _animationController =
         AnimationController(vsync: this, duration: Duration(seconds: 5))
@@ -52,37 +85,15 @@ class _SnowPageState extends State<SnowPage> with TickerProviderStateMixin {
         _list.add(point);
       }
     });
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      //填充布局
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        //层叠布局
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Image.network(
-                "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1606559665664&di=e907b7170d5474182f4c10693b1b4a6f&imgtype=0&src=http%3A%2F%2Fpic.vjshi.com%2F2020-01-12%2Fd2584e9710469221b122831e45c801e1%2F00003.jpg%3Fx-oss-process%3Dstyle%2Fwatermark",
-                fit: BoxFit.cover),
-            Positioned.fill(
-                child: CustomPaint(
-              painter: ShowCustomPainter(list: _list),
-            )),
-            // Text(
-            //   "Hello world",
-            //   style: TextStyle(
-            //       fontSize: 33,
-            //       fontWeight: FontWeight.bold,
-            //       color: Colors.yellow),
-            // )
-          ],
-        ),
-      ),
-    );
+    return Positioned.fill(
+        child: CustomPaint(
+      painter: ShowCustomPainter(list: _list),
+    ));
   }
 
   @override
@@ -101,8 +112,6 @@ class ShowCustomPainter extends CustomPainter {
 
   //点的集合
   List<CustomPoint> list;
-
-  Random _random = Random();
 
   ShowCustomPainter({@required this.list});
 

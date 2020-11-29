@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bilibili_learning/page/BubbleLoginPage.dart';
 import 'package:flutter_bilibili_learning/page/SnowPage.dart';
 
 void main() {
@@ -28,7 +29,10 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: MyHomePage(),
-      routes: {"snow": (BuildContext context) => SnowPage()},
+      routes: {
+        "snow": (BuildContext context) => SnowPage(),
+        "bubble": (BuildContext context) => BubbleLoginPage(),
+      },
     );
   }
 }
@@ -48,7 +52,10 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Container(
         alignment: Alignment.center,
         child: Column(
-          children: [_createItem("雪花效果", "snow")],
+          children: [
+            _createItem("雪花飘落", "snow"),
+            _createItem("气泡登录", "bubble"),
+          ],
         ),
       ),
     );
@@ -56,7 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _createItem(String pageName, String routeName) {
     return Container(
-      margin: EdgeInsets.all(20),
+      margin: EdgeInsets.only(top: 10, bottom: 10),
       width: 200,
       child: RaisedButton(
         onPressed: () {
