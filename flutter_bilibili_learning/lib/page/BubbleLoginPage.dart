@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
@@ -28,7 +29,9 @@ class _BubbleLoginPageState extends State<BubbleLoginPage> {
             //第二部分 气泡动画
             buildBobbleWidget(),
             //第三部分 高斯模糊
-            //第四部分 输入区域
+            buildBlurWidget(),
+            //第四部分 顶部小部件,
+            buildTopWidget(),
           ],
         ),
       ),
@@ -60,6 +63,30 @@ class _BubbleLoginPageState extends State<BubbleLoginPage> {
       child: _BubbleWidget(),
     );
   }
+
+  ///构建高斯模糊
+  buildBlurWidget() {
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 0.5, sigmaY: 0.5),
+      child: Container(
+        color: Colors.white.withOpacity(0.1),
+      ),
+    );
+  }
+
+  //构建顶部小部件
+  buildTopWidget() {
+    return Positioned(
+      left: 0,
+      right: 0,
+      top: 160,
+      child: Text(
+        "Hello Flutter",
+        style: TextStyle(color: Colors.blueAccent, fontSize: 40),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
 }
 
 ///气泡Widget
@@ -78,7 +105,7 @@ class _BubbleState extends State<_BubbleWidget> with TickerProviderStateMixin {
   double _maxSpeed = 1.0;
 
   //半径最大值
-  double _maxRadius = 80;
+  double _maxRadius = 50;
 
   //角度最大值
   double _maxTheta = 2 * pi;
@@ -90,17 +117,22 @@ class _BubbleState extends State<_BubbleWidget> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
-    var _random = Random(DateTime.now().microsecondsSinceEpoch);
-    for (int i = 0; i < 20; i++) {
-      BobbleBean bobble = BobbleBean()
-        //位置默认值
-        ..location = Offset(-1, -1)
-        ..color = getRandomAlphaWhiteColor(_random)
-        ..speed = _random.nextDouble() * _maxSpeed
-        ..radius = _random.nextDouble() * _maxRadius
-        ..theta = _random.nextDouble() * _maxTheta;
-      _list.add(bobble);
-    }
+    Future.delayed(Duration.zero, () {
+      var _random = Random(DateTime.now().microsecondsSinceEpoch);
+
+      for (int i = 0; i < 20; i++) {
+        BobbleBean bobble = BobbleBean()
+          //位置默认值
+          ..location = Offset(
+              MediaQuery.of(context).size.width * _random.nextDouble(),
+              MediaQuery.of(context).size.height * _random.nextDouble())
+          ..color = getRandomAlphaWhiteColor(_random)
+          ..speed = _random.nextDouble() * _maxSpeed
+          ..radius = 30 + _random.nextDouble() * _maxRadius
+          ..theta = _random.nextDouble() * _maxTheta;
+        _list.add(bobble);
+      }
+    });
 
     //动画控制器初始化
     _animationController =
@@ -113,12 +145,16 @@ class _BubbleState extends State<_BubbleWidget> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned.fill(
-        child: CustomPaint(
-      size: MediaQuery.of(context).size,
-      //画布
-      painter: CustomBobblePainter(list: _list),
-    ));
+    return CustomPaint(
+        size: MediaQuery.of(context).size,
+        //画布
+        painter: CustomBobblePainter(list: _list));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   ///获取随机透明度的白色
@@ -136,8 +172,6 @@ class CustomBobblePainter extends CustomPainter {
 
   CustomBobblePainter({@required this.list});
 
-  var _random = Random();
-
   @override
   void paint(Canvas canvas, Size size) {
     //根据气泡的速度与角度 计算每次便宜后的新坐标中心
@@ -148,13 +182,26 @@ class CustomBobblePainter extends CustomPainter {
       double dy = newCenterOffset.dy + element.location.dy;
 
       //计算边界
-      if (dx < 0 || dx > size.width) {
-        dx = _random.nextDouble() * size.width;
+
+      if (dx + element.radius < 0) {
+        dx = size.width + element.radius;
+      } else if (dx - element.radius > size.width) {
+        dx = -element.radius;
       }
 
-      if (dy < 0 || dy > size.height) {
-        dy = _random.nextDouble() * size.height;
+      if (dy + element.radius < 0) {
+        dy = size.height + element.radius;
+      } else if (dy - element.radius > size.height) {
+        dy = -element.radius;
       }
+
+      // if (dx < 0 || dx > size.width) {
+      //   dx = _random.nextDouble() * size.width;
+      // }
+      //
+      // if (dy < 0 || dy > size.height) {
+      //   dy = _random.nextDouble() * size.height;
+      // }
       element.location = Offset(dx, dy);
     });
 
