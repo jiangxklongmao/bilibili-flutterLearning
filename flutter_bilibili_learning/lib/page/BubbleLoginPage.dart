@@ -15,7 +15,51 @@ class BubbleLoginPage extends StatefulWidget {
   }
 }
 
-class _BubbleLoginPageState extends State<BubbleLoginPage> {
+class _BubbleLoginPageState extends State<BubbleLoginPage>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+  //渐变动画
+  AnimationController _fadeAnimationController;
+
+  //控制指定小部件是否半透明
+  bool _isTranslucent = false;
+
+  @override
+  void initState() {
+    //渐变动画控制器初始化
+    _fadeAnimationController =
+        AnimationController(vsync: this, duration: Duration(seconds: 1));
+    _fadeAnimationController.forward();
+
+    WidgetsBinding.instance.addObserver(this);
+
+    super.initState();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        if (MediaQuery.of(context).viewInsets.bottom == 0) {
+          //关闭键盘
+          _isTranslucent = false;
+        } else {
+          //显示键盘
+          _isTranslucent = true;
+        }
+        setState(() {
+
+        });
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,12 +76,15 @@ class _BubbleLoginPageState extends State<BubbleLoginPage> {
             buildBlurWidget(),
             //第四部分 顶部小部件,
             buildTopWidget(),
+            //第五部分 底部输入框小部件,
+            buildBottomInputArea(),
           ],
         ),
       ),
     );
   }
 
+  //region 控件模块
   ///构建背景Widget
   buildBackground() {
     return Container(
@@ -77,18 +124,86 @@ class _BubbleLoginPageState extends State<BubbleLoginPage> {
   //构建顶部小部件
   buildTopWidget() {
     return Positioned(
-      left: 0,
-      right: 0,
-      top: 160,
-      child: Text(
-        "Hello Flutter",
-        style: TextStyle(color: Colors.blueAccent, fontSize: 40),
-        textAlign: TextAlign.center,
-      ),
-    );
+        left: 0,
+        right: 0,
+        top: 160,
+        child: Opacity(
+          opacity: _isTranslucent ? 0.1 : 1,
+          child: Text(
+            "Hello Flutter",
+            style: TextStyle(color: Colors.blueAccent, fontSize: 40),
+            textAlign: TextAlign.center,
+          ),
+        ));
   }
+
+  ///底部输入框区域
+  buildBottomInputArea() {
+    return Positioned(
+        bottom: 100,
+        left: 50,
+        right: 50,
+        child: FadeTransition(
+          opacity: _fadeAnimationController,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFieldWidget(
+                  obscureText: false,
+                  onChanged: (value) {},
+                  labelText: "请输入手机号",
+                  prefixIconData: Icons.phone_android),
+              SizedBox(
+                height: 14,
+              ),
+              TextFieldWidget(
+                obscureText: true,
+                onChanged: (value) {},
+                labelText: "请输入密码",
+                prefixIconData: Icons.lock_outline,
+                suffixIconData: Icons.visibility,
+              ),
+              SizedBox(
+                height: 14,
+              ),
+              Container(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  "忘记密码",
+                  textAlign: TextAlign.end,
+                  style: TextStyle(fontSize: 14, color: Colors.blue),
+                ),
+              ),
+              SizedBox(
+                height: 14,
+              ),
+              Container(
+                height: 52,
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  child: Text("登录"),
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                height: 52,
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  child: Text("注册"),
+                ),
+              )
+            ],
+          ),
+        ));
+  }
+//endregion
 }
 
+///region 气泡Widget
 ///气泡Widget
 class _BubbleWidget extends StatefulWidget {
   @override
@@ -102,7 +217,7 @@ class _BubbleState extends State<_BubbleWidget> with TickerProviderStateMixin {
   List<BobbleBean> _list = [];
 
   //速度最大值
-  double _maxSpeed = 1.0;
+  double _maxSpeed = 1.5;
 
   //半径最大值
   double _maxRadius = 50;
@@ -243,3 +358,64 @@ class BobbleBean {
   //气泡大小
   double radius;
 }
+
+///endregion
+
+//region  输入框
+
+class TextFieldWidget extends StatelessWidget {
+  Function(String value) onChanged;
+  bool obscureText;
+  String labelText;
+
+  IconData prefixIconData;
+  IconData suffixIconData;
+
+  FocusNode focusNode;
+
+  TextFieldWidget(
+      {this.obscureText,
+      this.onChanged,
+      this.labelText,
+      this.prefixIconData,
+      this.suffixIconData,
+      this.focusNode});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      //焦点回调
+      focusNode: focusNode,
+      //输入回调
+      onChanged: onChanged,
+      //是否隐藏文本 用户密码
+      obscureText: obscureText,
+      style: TextStyle(color: Colors.blueAccent, fontSize: 14),
+      decoration: InputDecoration(
+          //填充一下
+          filled: true,
+          //提示文本
+          labelText: labelText,
+          //去掉默认的下划线
+          enabledBorder: UnderlineInputBorder(borderSide: BorderSide.none),
+          //获取焦点的边框样式
+          focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              borderSide: BorderSide(color: Colors.blue)),
+          //输入框前面的图标
+          prefixIcon: Icon(
+            prefixIconData,
+            size: 18,
+            color: Colors.blue,
+          ),
+          //输入框后面的图标
+          suffixIcon: Icon(
+            suffixIconData,
+            size: 18,
+            color: Colors.blue,
+          )),
+    );
+  }
+}
+
+//endregion
