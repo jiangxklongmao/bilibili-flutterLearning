@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bilibili_learning/page/BubbleLoginPage.dart';
 import 'package:flutter_bilibili_learning/page/SnowPage.dart';
+import 'package:flutter_bilibili_learning/page/WaveLoginPage.dart';
 
 void main() {
   runApp(MyApp());
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
       routes: {
         "snow": (BuildContext context) => SnowPage(),
         "bubble": (BuildContext context) => BubbleLoginPage(),
+        "wave": (BuildContext context) => WaveLoginPage(),
       },
     );
   }
@@ -55,6 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             _createItem("雪花飘落", "snow"),
             _createItem("气泡登录", "bubble"),
+            _createItem("波浪登录", "wave"),
           ],
         ),
       ),
