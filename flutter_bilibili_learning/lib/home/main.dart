@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bilibili_learning/page/BubbleLoginPage.dart';
+import 'package:flutter_bilibili_learning/page/PieChartPage.dart';
 import 'package:flutter_bilibili_learning/page/SnowPage.dart';
 import 'package:flutter_bilibili_learning/page/WaveLoginPage.dart';
 
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
         "snow": (BuildContext context) => SnowPage(),
         "bubble": (BuildContext context) => BubbleLoginPage(),
         "wave": (BuildContext context) => WaveLoginPage(),
+        "pieChart": (BuildContext context) => PieChartWidget(),
       },
     );
   }
@@ -58,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
             _createItem("雪花飘落", "snow"),
             _createItem("气泡登录", "bubble"),
             _createItem("波浪登录", "wave"),
+            _createItem("扇形图", "pieChart"),
           ],
         ),
       ),
