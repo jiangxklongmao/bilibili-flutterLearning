@@ -14,8 +14,9 @@ class PieChartWidget extends StatefulWidget {
   }
 }
 
-class PieChartState extends State<PieChartWidget> {
-  Color mainColor = Colors.blueGrey;
+class PieChartState extends State<PieChartWidget>
+    with SingleTickerProviderStateMixin {
+  Color mainColor = Color(0xFFE3E2ED);
   List _list = [
     {'title': '生活费', 'number': 200, 'color': Colors.blue},
     {'title': '交通费', 'number': 300, 'color': Colors.yellow},
@@ -23,6 +24,41 @@ class PieChartState extends State<PieChartWidget> {
     {'title': '游玩费', 'number': 200, 'color': Colors.orange},
     {'title': '通讯费', 'number': 100, 'color': Colors.deepPurple}
   ];
+
+  //动画控制器
+  AnimationController _animationController;
+
+  //控制动画背景抬高
+  Animation<double> _bgAnimation;
+
+  //控制饼图
+  Animation<double> _progressAnimation;
+
+  //控制数字使用
+  Animation<double> _numberAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    //初始化动画监听
+    _animationController =
+        AnimationController(vsync: this, duration: Duration(seconds: 2));
+    _bgAnimation = Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+        parent: _animationController,
+        //执行时间 区间
+        curve: Interval(0.0, 0.5, curve: Curves.elasticOut)));
+    _progressAnimation = Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+        parent: _animationController,
+        //执行时间 区间
+        curve: Interval(0.4, 0.8, curve: Curves.elasticOut)));
+    _numberAnimation = Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(
+        parent: _animationController,
+        //执行时间 区间
+        curve: Interval(0.7, 1.0, curve: Curves.elasticOut)));
+    _animationController.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +74,10 @@ class PieChartState extends State<PieChartWidget> {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () {},
+        onPressed: () {
+          _animationController.reset();
+          _animationController.forward();
+        },
       ),
     );
   }
@@ -54,6 +93,8 @@ class PieChartState extends State<PieChartWidget> {
             flex: 6,
             //层叠布局
             child: Stack(
+              //子Widget居中
+              alignment: Alignment.center,
               children: [
                 //第一层
                 Container(
@@ -68,23 +109,53 @@ class PieChartState extends State<PieChartWidget> {
                             //模糊颜色
                             color: Colors.white.withOpacity(0.3),
                             //模糊半径
-                            spreadRadius: -8,
+                            spreadRadius: -8 * _bgAnimation.value,
                             //阴影偏移量
-                            offset: Offset(-5, -5),
+                            offset: Offset(-5 * _bgAnimation.value,
+                                -5 * _bgAnimation.value),
                             //模糊度
-                            blurRadius: 30),
+                            blurRadius: 30 * _bgAnimation.value),
                         BoxShadow(
                             color: Colors.blue[300],
-                            spreadRadius: 2,
-                            offset: Offset(7, 7),
-                            blurRadius: 20)
+                            spreadRadius: 2 * _bgAnimation.value,
+                            offset: Offset(
+                                5 * _bgAnimation.value, 5 * _bgAnimation.value),
+                            blurRadius: 20 * _bgAnimation.value)
                       ]),
                   child: CustomPaint(
                     size: Size(200, 200),
-                    painter: CustomShapePainter(_list),
+                    painter:
+                        CustomShapePainter(_list, _progressAnimation.value),
                   ),
                 ),
-                //第一层
+                //第二层
+                Container(
+                  width: 100,
+                  decoration: BoxDecoration(
+                      color: mainColor,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                            //阴影颜色
+                            color: Colors.grey.withOpacity(0.7),
+                            //模糊半径
+                            spreadRadius: 1 * _numberAnimation.value,
+                            //模糊度
+                            blurRadius: 5 * _numberAnimation.value,
+                            //阴影偏移量
+                            offset: Offset(5 * _numberAnimation.value,
+                                5 * _numberAnimation.value))
+                      ]),
+                  child: Center(
+                    child: Text(
+                      '￥100',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                          fontSize: 22),
+                    ),
+                  ),
+                )
               ],
             )),
       ],
@@ -98,7 +169,7 @@ class PieChartState extends State<PieChartWidget> {
       //图例排列
       children: _list.map((data) {
         return Container(
-          //设置水平 垂直Pading
+          //设置水平 垂直Padding
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Row(
             children: [
@@ -132,7 +203,9 @@ class CustomShapePainter extends CustomPainter {
   //画笔
   Paint _paint = Paint()..isAntiAlias = true;
 
-  CustomShapePainter(this.list);
+  double progress;
+
+  CustomShapePainter(this.list, this.progress);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -158,7 +231,7 @@ class CustomShapePainter extends CustomPainter {
       //计算所占比例
       double radio = item['number'] / total;
       //计算弧度
-      double sweepRadian = radio * 2 * pi;
+      double sweepRadian = radio * 2 * pi * progress;
 
       //开始绘制弧度
       canvas.drawArc(Rect.fromCircle(center: center, radius: radius),
